@@ -20,7 +20,7 @@ echo "<?php\n";
 namespace <?= $generator->ns ?>\entity;
 
 /**
- * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
+ * This is the model entity class for table "<?= $generator->generateTableName($tableName) ?>".
  *
 <?php foreach ($properties as $property => $data): ?>
  * @property <?= "{$data['type']} \${$property}"  . ($data['comment'] ? ' ' . strtr($data['comment'], ["\n" => ' ']) : '') . "\n" ?>

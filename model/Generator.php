@@ -33,7 +33,10 @@ class Generator extends GeneratorAbstract
     public $queryNs = 'app\models';
     public $queryClass;
     public $queryBaseClass = 'yii\db\ActiveQuery';
-    public $generateBaseOnly = false;
+    public $generateEntityModel = true;
+    public $generateSearchModel = true;
+    public $searchDefaultOrderField;
+    public $searchDefaultOrderDirection = SORT_ASC;
 
     /**
      * @inheritdoc
@@ -58,7 +61,7 @@ class Generator extends GeneratorAbstract
     {
         return array_merge(parent::rules(), [
             [
-                ['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass'],
+                ['db', 'ns', 'tableName', 'modelClass', 'baseClass', 'queryNs', 'queryClass', 'queryBaseClass', 'searchDefaultOrderField'],
                 'filter', 'filter' => 'trim'
             ],
             [
@@ -96,6 +99,7 @@ class Generator extends GeneratorAbstract
             [['baseClass'], 'validateClass', 'params' => ['extends' => ActiveRecord::className()]],
             [['queryBaseClass'], 'validateClass', 'params' => ['extends' => ActiveQuery::className()]],
             [['messageCategory'], 'validateMessageCategory', 'skipOnEmpty' => false],
+            ['searchDefaultOrderDirection', 'in', 'range' => [SORT_ASC, SORT_DESC]],
             [
                 ['generateRelations'],
                 'in',
@@ -109,7 +113,8 @@ class Generator extends GeneratorAbstract
                     'generateQuery',
                     'generateRelationsFromCurrentSchema',
                     'enableI18N',
-                    'generateBaseOnly'
+                    'generateEntityModel',
+                    'generateSearchModel'
                 ],
                 'boolean'
             ],
@@ -135,7 +140,9 @@ class Generator extends GeneratorAbstract
             'queryClass' => 'ActiveQuery Class',
             'queryBaseClass' => 'ActiveQuery Base Class',
             'useSchemaName' => 'Use Schema Name',
-            'generateBaseOnly' => 'Generate Only Entity Model'
+            'generateBaseOnly' => 'Generate Only Entity Model',
+            'generateSearchModel' => 'Generate Search Model',
+            'searchDefaultOrderField' => 'Default Order Column',
         ]);
     }
 
@@ -202,7 +209,7 @@ class Generator extends GeneratorAbstract
     public function requiredTemplates()
     {
         // @todo make 'query.php' to be required before 2.1 release
-        return ['model-entity.php', 'model.php'];
+        return ['model-entity.php', 'model.php', 'model-search.php'];
         //return ['model.php'/*, 'query.php'*/];
     }
 
@@ -268,10 +275,17 @@ class Generator extends GeneratorAbstract
                 $this->render('model-entity.php', $params)
             );
 
-            if (!$this->generateBaseOnly) {
+            if ($this->generateEntityModel) {
                 $files[] = new CodeFile(
                     Yii::getAlias('@' . str_replace('\\', '/', $this->ns)) . '/' . $modelClassName . '.php',
                     $this->render('model.php', $params)
+                );
+            }
+
+            if ($this->generateSearchModel) {
+                $files[] = new CodeFile(
+                    Yii::getAlias('@' . str_replace('\\', '/', $this->ns . '/search')) . '/' . $modelClassName . 'Search.php',
+                    $this->render('model-search.php', $params)
                 );
             }
 
