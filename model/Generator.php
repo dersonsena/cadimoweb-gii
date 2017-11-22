@@ -20,7 +20,7 @@ class Generator extends GeneratorAbstract
     const RELATIONS_ALL_INVERSE = 'all-inverse';
 
     public $db = 'db';
-    public $ns = 'modules\xxxxx\models';
+    public $ns = 'backend\modules\xxxxx\models';
     public $tableName;
     public $modelClass;
     public $baseClass = 'common\components\ModelBase';
@@ -33,6 +33,7 @@ class Generator extends GeneratorAbstract
     public $queryNs = 'app\models';
     public $queryClass;
     public $queryBaseClass = 'yii\db\ActiveQuery';
+    public $generateBaseOnly = false;
 
     /**
      * @inheritdoc
@@ -107,7 +108,8 @@ class Generator extends GeneratorAbstract
                     'useSchemaName',
                     'generateQuery',
                     'generateRelationsFromCurrentSchema',
-                    'enableI18N'
+                    'enableI18N',
+                    'generateBaseOnly'
                 ],
                 'boolean'
             ],
@@ -133,6 +135,7 @@ class Generator extends GeneratorAbstract
             'queryClass' => 'ActiveQuery Class',
             'queryBaseClass' => 'ActiveQuery Base Class',
             'useSchemaName' => 'Use Schema Name',
+            'generateBaseOnly' => 'Generate Only Entity Model'
         ]);
     }
 
@@ -199,7 +202,8 @@ class Generator extends GeneratorAbstract
     public function requiredTemplates()
     {
         // @todo make 'query.php' to be required before 2.1 release
-        return ['model.php'/*, 'query.php'*/];
+        return ['model-entity.php', 'model.php'];
+        //return ['model.php'/*, 'query.php'*/];
     }
 
     /**
@@ -242,6 +246,7 @@ class Generator extends GeneratorAbstract
         $files = [];
         $relations = $this->generateRelations();
         $db = $this->getDbConnection();
+
         foreach ($this->getTableNames() as $tableName) {
             // model :
             $modelClassName = $this->generateClassName($tableName);
@@ -257,10 +262,18 @@ class Generator extends GeneratorAbstract
                 'rules' => $this->generateRules($tableSchema),
                 'relations' => isset($relations[$tableName]) ? $relations[$tableName] : [],
             ];
+
             $files[] = new CodeFile(
-                Yii::getAlias('@' . str_replace('\\', '/', $this->ns)) . '/' . $modelClassName . '.php',
-                $this->render('model.php', $params)
+                Yii::getAlias('@' . str_replace('\\', '/', $this->ns . '/entity')) . '/' . $modelClassName . 'Entity.php',
+                $this->render('model-entity.php', $params)
             );
+
+            if (!$this->generateBaseOnly) {
+                $files[] = new CodeFile(
+                    Yii::getAlias('@' . str_replace('\\', '/', $this->ns)) . '/' . $modelClassName . '.php',
+                    $this->render('model.php', $params)
+                );
+            }
 
             // query :
             if ($queryClassName) {

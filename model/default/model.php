@@ -1,8 +1,4 @@
 <?php
-/**
- * This is the template for generating the model class of a specified table.
- */
-
 /* @var $this yii\web\View */
 /* @var $generator \dersonsena\cadimowebgii\model\Generator */
 /* @var $tableName string full table name */
@@ -19,14 +15,10 @@ echo "<?php\n";
 
 namespace <?= $generator->ns ?>;
 
-use Yii;
+use <?= $generator->ns . '\\entity\\' . $className . 'Entity' ?>;<?= "\n" ?>
 
 /**
  * This is the model class for table "<?= $generator->generateTableName($tableName) ?>".
- *
-<?php foreach ($properties as $property => $data): ?>
- * @property <?= "{$data['type']} \${$property}"  . ($data['comment'] ? ' ' . strtr($data['comment'], ["\n" => ' ']) : '') . "\n" ?>
-<?php endforeach; ?>
 <?php if (!empty($relations)): ?>
  *
 <?php foreach ($relations as $name => $relation): ?>
@@ -34,34 +26,8 @@ use Yii;
 <?php endforeach; ?>
 <?php endif; ?>
  */
-abstract class <?= $className ?>Entity extends <?= '\\' . ltrim($generator->baseClass, '\\') . "\n" ?>
+class <?= $className ?> extends <?= $className . 'Entity' . "\n" ?>
 {
-    /**
-     * @inheritdoc
-     */
-    public static function tableName()
-    {
-        return '<?= $generator->generateTableName($tableName) ?>';
-    }
-<?php if ($generator->db !== 'db'): ?>
-
-    /**
-     * @return \yii\db\Connection the database connection used by this AR class.
-     */
-    public static function getDb()
-    {
-        return Yii::$app->get('<?= $generator->db ?>');
-    }
-<?php endif; ?>
-
-    /**
-     * @inheritdoc
-     */
-    public function rules()
-    {
-        return [<?= empty($rules) ? '' : ("\n            " . implode(",\n            ", $rules) . ",\n        ") ?>];
-    }
-
     /**
      * @inheritdoc
      */
@@ -73,28 +39,4 @@ abstract class <?= $className ?>Entity extends <?= '\\' . ltrim($generator->base
 <?php endforeach; ?>
         ];
     }
-<?php foreach ($relations as $name => $relation): ?>
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function get<?= $name ?>()
-    {
-        <?= $relation[0] . "\n" ?>
-    }
-<?php endforeach; ?>
-<?php if ($queryClassName): ?>
-<?php
-    $queryClassFullName = ($generator->ns === $generator->queryNs) ? $queryClassName : '\\' . $generator->queryNs . '\\' . $queryClassName;
-    echo "\n";
-?>
-    /**
-     * @inheritdoc
-     * @return <?= $queryClassFullName ?> the active query used by this AR class.
-     */
-    public static function find()
-    {
-        return new <?= $queryClassFullName ?>(get_called_class());
-    }
-<?php endif; ?>
 }

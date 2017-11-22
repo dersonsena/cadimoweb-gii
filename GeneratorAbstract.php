@@ -8,6 +8,7 @@ use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\helpers\VarDumper;
 use yii\web\View;
+use yii\gii\CodeFile;
 
 /**
  * This is the base class for all generator classes.
